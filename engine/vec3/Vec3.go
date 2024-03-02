@@ -1,4 +1,4 @@
-package engine
+package vec3
 
 import "math"
 
@@ -8,7 +8,7 @@ type Vec3 struct {
 	Z float32
 }
 
-func NewVec3(x, y, z float32) Vec3 {
+func New(x, y, z float32) Vec3 {
 	return Vec3{
 		X: x, Y: y, Z: z,
 	}
@@ -19,17 +19,21 @@ func Add(v1, v2 Vec3) Vec3 {
 }
 
 // Subtract returns the difference between two vectors.
-func (v1 *Vec3) Subtract(v2 Vec3) Vec3 {
+func (v1 Vec3) Subtract(v2 Vec3) Vec3 {
 	return Vec3{v1.X - v2.X, v1.Y - v2.Y, v1.Z - v2.Z}
 }
 
 // MultiplyScalar multiplies a vector by a scalar.
-func MultiplyScalar(v Vec3, scalar float32) Vec3 {
+func (v Vec3) MultiplyScalar(scalar float32) Vec3 {
 	return Vec3{v.X * scalar, v.Y * scalar, v.Z * scalar}
 }
 
+func (v Vec3) Abs() Vec3 {
+	return New(float32(math.Abs(float64(v.X))), float32(math.Abs(float64(v.Y))), float32(math.Abs(float64(v.Z))))
+}
+
 // DotProduct calculates the dot product of two vectors.
-func DotProduct(v1, v2 Vec3) float32 {
+func (v1 Vec3) DotProduct(v2 Vec3) float32 {
 	return v1.X*v2.X + v1.Y*v2.Y + v1.Z*v2.Z
 }
 
@@ -53,5 +57,5 @@ func (v Vec3) Normalize() Vec3 {
 	if magnitude == 0 {
 		return Vec3{} // Avoid division by zero
 	}
-	return MultiplyScalar(v, 1/magnitude)
+	return v.MultiplyScalar(1 / magnitude)
 }

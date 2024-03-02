@@ -3,6 +3,8 @@ package engine
 import (
 	"math"
 	"testing"
+
+	. "github.com/supersdf-go/engine/vec3"
 )
 
 func TestMat4Identity(t *testing.T) {

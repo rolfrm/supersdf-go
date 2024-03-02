@@ -3,6 +3,8 @@ package engine
 import (
 	"fmt"
 	"math"
+
+	. "github.com/supersdf-go/engine/vec3"
 )
 
 // column-major mat4.

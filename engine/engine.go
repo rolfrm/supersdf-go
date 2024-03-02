@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-gl/gl/v4.1-core/gl"
 	"github.com/go-gl/glfw/v3.3/glfw"
+	. "github.com/supersdf-go/engine/vec3"
 	"github.com/supersdf-go/engine/vec4"
 )
 
@@ -200,16 +201,4 @@ func (p *Polygon) Load3D(vertices []Vec3) {
 	}
 	gl.BufferData(gl.ARRAY_BUFFER, 3*4*len(vertices), unsafe.Pointer(&arr[0]), gl.STATIC_DRAW)
 
-}
-
-type Sdf struct {
-	Sdf func(p Vec3) float32
-}
-
-func SphereSdf(center Vec3, radius float32) Sdf {
-	return Sdf{
-		Sdf: func(p Vec3) float32 {
-			return p.Subtract(center).Length() - radius
-		},
-	}
 }

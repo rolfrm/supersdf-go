@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	. "github.com/supersdf-go/engine"
+	vec3 "github.com/supersdf-go/engine/vec3"
 	vec4 "github.com/supersdf-go/engine/vec4"
 )
 
@@ -36,17 +37,17 @@ func (g *Game) Update() {
 	if len(g.Entities) == 0 {
 		fmt.Println("New")
 		p1 := Polygon{}
-		p1.Load3D([]Vec3{
-			NewVec3(-0.5, -0.5, 0.0),
-			NewVec3(0.5, -0.5, 0.0),
-			NewVec3(0.0, 0.5, 0.0),
+		p1.Load3D([]vec3.Vec3{
+			vec3.New(-0.5, -0.5, 0.0),
+			vec3.New(0.5, -0.5, 0.0),
+			vec3.New(0.0, 0.5, 0.0),
 		})
 		e1 := Entity{Polygons: []Polygon{p1}, Transform: Mat4Translation(0.25, 0.0, 0.0)}
 
 		g.Entities = []*Entity{&e1}
 	}
 	for _, e := range g.Entities {
-		e.Transform = RotationMatrix(g.time, NewVec3(0, 0, 1))
+		e.Transform = RotationMatrix(g.time, vec3.New(0, 0, 1))
 	}
 
 }
