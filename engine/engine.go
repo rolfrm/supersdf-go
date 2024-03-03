@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-gl/gl/v4.1-core/gl"
 	"github.com/go-gl/glfw/v3.3/glfw"
+	"github.com/supersdf-go/engine/vec3"
 	. "github.com/supersdf-go/engine/vec3"
 	"github.com/supersdf-go/engine/vec4"
 )
@@ -43,32 +44,24 @@ func RunApp(ctx MainContext) error {
 	}
 	gl.UseProgram(shaderProgram)
 
-	// Create Vertex Array Object (VAO)
-	var vao uint32
-	gl.GenVertexArrays(1, &vao)
-	gl.BindVertexArray(vao)
-
-	// Create Vertex Buffer Object (VBO) for vertices
-	var vbo uint32
-	gl.GenBuffers(1, &vbo)
-	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
-	gl.BufferData(gl.ARRAY_BUFFER, 4*len(vertices), gl.Ptr(vertices), gl.STATIC_DRAW)
-
 	// Specify vertex attribute pointers
 	positionAttrib := uint32(gl.GetAttribLocation(shaderProgram, gl.Str("vp\x00")))
 	gl.EnableVertexAttribArray(positionAttrib)
 	gl.VertexAttribPointer(positionAttrib, 3, gl.FLOAT, false, 0, nil)
 
-	screen := Screen{}
-	screen.transformLoc = gl.GetUniformLocation(shaderProgram, gl.Str("transform\x00"))
+	screen := Screen{cameraTransform: Mat4Identity()}
+	screen.modelViewLoc = gl.GetUniformLocation(shaderProgram, gl.Str("modelView\x00"))
 	screen.colorLoc = gl.GetUniformLocation(shaderProgram, gl.Str("color\x00"))
+	screen.cameraPositionLoc = gl.GetUniformLocation(shaderProgram, gl.Str("cameraPosition\x00"))
+	screen.modelTransformLoc = gl.GetUniformLocation(shaderProgram, gl.Str("modelTransform\x00"))
 	screen.positionAttrib = positionAttrib
 	for !window.ShouldClose() {
 		ctx.Update()
 		w, h := window.GetSize()
 		ctx.Layout(w, h)
 		gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-
+		gl.UseProgram(shaderProgram)
+		gl.Uniform3f(screen.cameraPositionLoc, screen.cameraPosition.X, screen.cameraPosition.Y, screen.cameraPosition.Z)
 		ctx.Draw(screen)
 
 		window.SwapBuffers()
@@ -134,36 +127,45 @@ func compileShader(source string, shaderType uint32) (uint32, error) {
 }
 
 type Screen struct {
-	colorLoc       int32
-	positionAttrib uint32
-	transformLoc   int32
+	colorLoc          int32
+	positionAttrib    uint32
+	modelViewLoc      int32
+	cameraPositionLoc int32
+	modelTransformLoc int32
+	cameraPosition    vec3.Vec3
+	cameraTransform   Mat4
 }
 
-func (s *Screen) Draw(polygon Polygon, transform Mat4, color vec4.Vec4) {
-	gl.UniformMatrix4fv(s.transformLoc, 1, false, &transform[0])
+func (s *Screen) SetCamera(viewTransform Mat4, cameraPosition Vec3, cameraUp Vec3, cameraRight Vec3) {
+	s.cameraPosition = cameraPosition
+	var camRotation = RotationMatrix2(cameraUp, cameraRight)
+	var camTranslation = Mat4Translation(-cameraPosition.X, -cameraPosition.Y, -cameraPosition.Z)
+	s.cameraTransform = viewTransform.Multiply(camRotation.Multiply(camTranslation))
+
+}
+
+func (s *Screen) Draw(polygon Polygon, modelTransform Mat4, color vec4.Vec4) {
+	modelView := s.cameraTransform.Multiply(modelTransform)
+	gl.UniformMatrix4fv(s.modelViewLoc, 1, false, &modelView[0])
 	gl.Uniform4f(s.colorLoc, color.X, color.Y, color.Z, color.W)
 	gl.BindVertexArray(polygon.buffer)
 	gl.DrawArrays(gl.TRIANGLES, 0, int32(polygon.count))
+	gl.BindVertexArray(0)
 }
 
 var (
-	vertices = []float32{
-		-0.5, -0.5, 0.0,
-		0.5, -0.5, 0.0,
-		0.0, 0.5, 0.0,
-	}
-
-	colors = []float32{
-		1.0, 0.0, 0.0,
-		0.0, 1.0, 0.0,
-		0.0, 0.0, 1.0,
-	}
 	vertexShaderSource = `
 		#version 410
-		uniform mat4 transform;
+		uniform mat4 modelView;
+		uniform mat4 modelTransform;
+		uniform vec3 cameraPosition;
 		in vec3 vp;
+		out vec3 wp;
+		out vec3 eye_dir;
 		void main() {
-			gl_Position = transform * vec4(vp, 1.0);
+			gl_Position = modelView * vec4(vp, 1.0);
+			wp = (modelTransform * vec4(vp, 1.0)).xyz;
+			eye_dir = normalize(wp - eye_dir);
 		}
 	` + "\x00"
 
@@ -181,16 +183,27 @@ var (
 
 type Polygon struct {
 	Color  vec4.Vec4
+	vao    uint32
 	buffer uint32
 	count  uint32
 }
 
 func (p *Polygon) Load3D(vertices []Vec3) {
+
 	vbo := p.buffer
 	if vbo == 0 {
+		var vao uint32
+		gl.GenVertexArrays(1, &vao)
+
 		gl.GenBuffers(1, &vbo)
 		p.buffer = vbo
+		p.vao = vao
+		gl.BindVertexArray(p.vao)
+		gl.BindBuffer(gl.ARRAY_BUFFER, p.buffer)
+		gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 0, gl.PtrOffset(0))
+		gl.EnableVertexAttribArray(0)
 	}
+	gl.BindVertexArray(p.vao)
 	p.count = uint32(len(vertices))
 	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
 	arr := make([]float32, len(vertices)*3)
@@ -200,5 +213,6 @@ func (p *Polygon) Load3D(vertices []Vec3) {
 		arr[i*3+2] = v.Z
 	}
 	gl.BufferData(gl.ARRAY_BUFFER, 3*4*len(vertices), unsafe.Pointer(&arr[0]), gl.STATIC_DRAW)
+	gl.BindVertexArray(0)
 
 }

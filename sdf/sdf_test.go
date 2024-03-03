@@ -73,3 +73,48 @@ func TestIntersect(t *testing.T) {
 		t.Error("Did not expect intersection")
 	}
 }
+
+func TestOptimizeIntersect(t *testing.T) {
+	sdf := Union{
+		Sphere{
+			center: vec3.New(0, 0, 0),
+			radius: 1.0,
+		}, Sphere{
+			center: vec3.New(1, 0, 0),
+			radius: 1.0,
+		}, Cube{
+			center:   vec3.New(0.5, 0.5, 0.5),
+			halfSize: vec3.New(0.1, 0.2, 0.3),
+		},
+	}
+
+	testcases := []struct {
+		intersect      Sdf
+		expectedResult Sdf
+	}{
+		{
+			intersect:      Sphere{center: vec3.New(-5, 0, 0), radius: 1},
+			expectedResult: Infinity{},
+		},
+		{
+			intersect: Sphere{center: vec3.New(-1.8, 0, 0), radius: 1},
+			expectedResult: Sphere{
+				center: vec3.New(0, 0, 0),
+				radius: 1.0,
+			},
+		},
+		{
+			intersect:      Sphere{center: vec3.New(0.0, 0, 0), radius: 1},
+			expectedResult: sdf,
+		},
+	}
+	for _, item := range testcases {
+		result := OptimizeIntersect(sdf, item.intersect)
+		fmt.Printf("a: %v \n", result)
+		fmt.Printf("b: %v \n", item.expectedResult)
+		if !CompareSdfs(item.expectedResult, result) {
+			t.Error("Objects are not equal!")
+		}
+	}
+
+}

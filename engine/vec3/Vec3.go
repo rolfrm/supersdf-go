@@ -38,7 +38,7 @@ func (v1 Vec3) DotProduct(v2 Vec3) float32 {
 }
 
 // CrossProduct calculates the cross product of two vectors.
-func CrossProduct(v1, v2 Vec3) Vec3 {
+func (v1 Vec3) CrossProduct(v2 Vec3) Vec3 {
 	return Vec3{
 		v1.Y*v2.Z - v1.Z*v2.Y,
 		v1.Z*v2.X - v1.X*v2.Z,

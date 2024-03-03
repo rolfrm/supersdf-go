@@ -34,6 +34,14 @@ func Mat4Translation(x, y, z float32) Mat4 {
 	return v
 }
 
+func Mat4Scale(x, y, z float32) Mat4 {
+	v := Mat4Identity()
+	v.Set(0, 0, x)
+	v.Set(1, 1, y)
+	v.Set(2, 2, z)
+	return v
+}
+
 func (a *Mat4) Multiply(b Mat4) Mat4 {
 	result := Mat4{}
 
@@ -78,7 +86,7 @@ func (m Mat4) Transpose() Mat4 {
 
 func PerspectiveMatrix(fov, aspect, near, far float32) Mat4 {
 	// Convert field of view to radians
-	fovRad := fov * (math.Pi / 180.0)
+	fovRad := fov
 
 	f := float32(1.0 / math.Tan(float64(fovRad)/2.0))
 	znear := near
@@ -144,4 +152,22 @@ func RotationMatrix(angle float32, axis Vec3) Mat4 {
 		axis.Z*axis.X*invCosA - axis.Y*sinA, axis.Z*axis.Y*invCosA + axis.X*sinA, cosA + axis.Z*axis.Z*invCosA, 0,
 		0, 0, 0, 1,
 	}
+}
+
+func RotationMatrix2(up, right Vec3) Mat4 {
+
+	// Calculate the forward vector using the cross product of up and right
+	up = up.Normalize()
+	right = right.Normalize()
+	forward := up.CrossProduct(right).Normalize()
+
+	// Assign the vectors to the rotation matrix
+	matrix := Mat4{
+		right.X, right.Y, right.Z, 0,
+		up.X, up.Y, up.Z, 0,
+		forward.X, forward.Y, forward.Z, 0,
+		0, 0, 0, 1,
+	}.Transpose() // column major
+
+	return matrix
 }
