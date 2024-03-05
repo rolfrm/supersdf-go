@@ -96,8 +96,8 @@ func PerspectiveMatrix(fov, aspect, near, far float32) Mat4 {
 	return Mat4{
 		f * aspectInv, 0, 0, 0,
 		0, f, 0, 0,
-		0, 0, (zfar + znear) / (znear - zfar), -1,
-		0, 0, (2 * zfar * znear) / (znear - zfar), 0,
+		0, 0, -(zfar + znear) / (znear - zfar), -1,
+		0, 0, (-2 * zfar * znear) / (znear - zfar), 0,
 	}
 }
 
@@ -159,7 +159,7 @@ func RotationMatrix2(up, right Vec3) Mat4 {
 	// Calculate the forward vector using the cross product of up and right
 	up = up.Normalize()
 	right = right.Normalize()
-	forward := up.CrossProduct(right).Normalize()
+	forward := right.CrossProduct(up).Normalize()
 
 	// Assign the vectors to the rotation matrix
 	matrix := Mat4{
