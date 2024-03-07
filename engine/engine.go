@@ -62,6 +62,7 @@ func RunApp(ctx MainContext) error {
 	}
 
 	window.MakeContextCurrent()
+	gl.Enable(gl.CULL_FACE)
 	shaderProgram, e := compileShaders(vertexShaderSource, fragmentShaderSource)
 	if e != nil {
 		panic(e)
@@ -235,19 +236,30 @@ var (
 		}
 
 		float sdf(vec3 p){
-			return min(sph(p, vec3(-0.4, 0, -3), 0.5), min(sph(p, vec3(0.4, 0, -1), 0.5), sph(p, vec3(0.5, 0, -7), 0.5)));
+			return min(sph(p, vec3(0,-11,0),10),min(sph(p, vec3(-0.4, 0, -3), 0.5), min(sph(p, vec3(0.4, 0, -1), 0.5), sph(p, vec3(0.5, 0, -7), 0.5))));
 		}
+		vec4 colorsdf(vec3 p){
+			float sph1 = sph(p, vec3(-0.4, 0, -3), 0.5);
+			float sph2 =  sph(p, vec3(0.4, 0, -1), 0.5); 
+			float sph3 = sph(p, vec3(0.5, 0, -7), 0.5);
+			float sph4 = sph(p, vec3(0,-11,0),10);
+			if(sph4 < 0.2) return vec4(1,1,1,1);
+			if(sph1 <= sph2 && sph1 <= sph3) return vec4(1,0,0,1);
+			if(sph2 <= sph1 && sph2 <= sph3) return vec4(0,1,0,1);
+			return vec4(0,0,1,1);
+		}
+
 
 		void main() {
 			vec3 loc = wp;
 			vec3 dir = normalize(wp - cameraPosition);
-			for(int i =0; i <10	 ;i++){
+			for(int i =0; i <20	 ;i++){
 				float d = sdf(loc);
 				loc = loc + d * 1.2 * dir;
 			}
 
 			if (sdf(loc) < 0.1) {
-				frag_color = color;
+				frag_color = colorsdf(loc);
 				
 			}else{
 				frag_color = vec4(0.1,0.1,0.1,1);

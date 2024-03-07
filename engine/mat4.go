@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 
+	"github.com/supersdf-go/engine/vec3"
 	. "github.com/supersdf-go/engine/vec3"
 )
 
@@ -59,12 +60,20 @@ func (a *Mat4) Multiply(b Mat4) Mat4 {
 }
 
 func (m *Mat4) Apply(v Vec3) Vec3 {
-	result := Vec3{
-		m[0]*v.X + m[1]*v.Y + m[2]*v.Z + m[3],
-		m[4]*v.X + m[5]*v.Y + m[6]*v.Z + m[7],
-		m[8]*v.X + m[9]*v.Y + m[10]*v.Z + m[11],
-	}
+	result := vec3.New(
+		m[0]*v.X+m[1]*v.Y+m[2]*v.Z+m[3],
+		m[4]*v.X+m[5]*v.Y+m[6]*v.Z+m[7],
+		m[8]*v.X+m[9]*v.Y+m[10]*v.Z+m[11],
+	)
 	return result
+}
+
+func (m *Mat4) ApplyN(v []Vec3) []Vec3 {
+	out := make([]Vec3, len(v))
+	for i, v := range v {
+		out[i] = m.Apply(v)
+	}
+	return out
 }
 
 func (m *Mat4) ToString() string {
