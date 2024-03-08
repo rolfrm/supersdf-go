@@ -1,3 +1,7 @@
+// Distance field calculations
+// todo: Should distance fields have hashes
+// or should I calculate hashes as I go?
+
 package sdf
 
 import (
@@ -25,8 +29,8 @@ func Optimize(s *Sdf) Sdf {
 }
 
 func SphereIntersects(sdf Sdf, sphere *Sphere) bool {
-	d0 := sdf.Distance(sphere.center)
-	return d0 <= sphere.radius
+	d0 := sdf.Distance(sphere.Center)
+	return d0 <= sphere.Radius
 }
 
 func GenericIntersects(sdf Sdf, sdf2 Sdf) bool {
@@ -46,6 +50,18 @@ func OptimizeIntersect(sdf Sdf, intersect Sdf) Sdf {
 			return obj
 		}
 		return Infinity{}
+	case Color:
+		inner := OptimizeIntersect(obj.Sub, intersect)
+		if isInfinity(inner) {
+			return Infinity{}
+		}
+		if obj.Sub == inner {
+			return obj
+		}
+		return Color{
+			Color: obj.Color,
+			Sub:   inner,
+		}
 	case Union:
 		result := Union{}
 		for _, v := range obj {
@@ -85,8 +101,8 @@ func CompareSdfs(a Sdf, b Sdf) bool {
 }
 
 type Sphere struct {
-	center vec3.Vec3
-	radius float32
+	Center vec3.Vec3
+	Radius float32
 }
 
 func HashFloat32(f float32, hasher hash.Hash) {
@@ -106,14 +122,14 @@ func HashVec3(v vec3.Vec3, hasher hash.Hash) {
 }
 
 func (s Sphere) Distance(p vec3.Vec3) float32 {
-	return p.Subtract(s.center).Length() - s.radius
+	return p.Subtract(s.Center).Length() - s.Radius
 }
 
 var sphereSalt []byte = []byte{1, 2, 3, 4}
 
 func (s Sphere) Hash(hasher hash.Hash) {
-	HashVec3(s.center, hasher)
-	HashFloat32(s.radius, hasher)
+	HashVec3(s.Center, hasher)
+	HashFloat32(s.Radius, hasher)
 	hasher.Write(sphereSalt)
 }
 
@@ -136,7 +152,7 @@ func (c Cube) Hash(h hash.Hash) {
 }
 
 func (c *Cube) SphereBounds() Sphere {
-	return Sphere{center: c.center, radius: max(c.halfSize.X, c.halfSize.Y, c.halfSize.Z)}
+	return Sphere{Center: c.center, Radius: max(c.halfSize.X, c.halfSize.Y, c.halfSize.Z)}
 }
 
 type Union []Sdf
@@ -166,4 +182,19 @@ func (s Infinity) Distance(p vec3.Vec3) float32 {
 
 func (s Infinity) Hash(h hash.Hash) {
 	h.Write(sphereSalt)
+}
+
+type Color struct {
+	Color vec3.Vec3
+	Sub   Sdf
+}
+
+func (s Color) Distance(p vec3.Vec3) float32 {
+	return infinity
+}
+
+func (s Color) Hash(h hash.Hash) {
+	h.Write(sphereSalt)
+	HashVec3(s.Color, h)
+	s.Sub.Hash(h)
 }

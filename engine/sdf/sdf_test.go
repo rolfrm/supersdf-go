@@ -23,11 +23,11 @@ func TestUnion(t *testing.T) {
 
 	sdf = Union{
 		Sphere{
-			center: vec3.New(0, 0, 0),
-			radius: 1.0,
+			Center: vec3.New(0, 0, 0),
+			Radius: 1.0,
 		}, Sphere{
-			center: vec3.New(1, 0, 0),
-			radius: 1.0,
+			Center: vec3.New(1, 0, 0),
+			Radius: 1.0,
 		},
 		Infinity{},
 	}
@@ -52,23 +52,23 @@ func TestUnion(t *testing.T) {
 func TestIntersect(t *testing.T) {
 	sdf := Union{
 		Sphere{
-			center: vec3.New(0, 0, 0),
-			radius: 1.0,
+			Center: vec3.New(0, 0, 0),
+			Radius: 1.0,
 		}, Sphere{
-			center: vec3.New(1, 0, 0),
-			radius: 1.0,
+			Center: vec3.New(1, 0, 0),
+			Radius: 1.0,
 		},
 		Infinity{},
 	}
-	i1 := SphereIntersects(sdf, &Sphere{center: vec3.New(-1, 0, 0), radius: 1.1})
+	i1 := SphereIntersects(sdf, &Sphere{Center: vec3.New(-1, 0, 0), Radius: 1.1})
 	if !i1 {
 		t.Error("Expected intersection")
 	}
-	i2 := SphereIntersects(sdf, &Sphere{center: vec3.New(1, 0, 0), radius: 1.1})
+	i2 := SphereIntersects(sdf, &Sphere{Center: vec3.New(1, 0, 0), Radius: 1.1})
 	if !i2 {
 		t.Error("Expected intersection")
 	}
-	i3 := SphereIntersects(sdf, &Sphere{center: vec3.New(3.2, 0, 0), radius: 1.1})
+	i3 := SphereIntersects(sdf, &Sphere{Center: vec3.New(3.2, 0, 0), Radius: 1.1})
 	if i3 {
 		t.Error("Did not expect intersection")
 	}
@@ -77,11 +77,11 @@ func TestIntersect(t *testing.T) {
 func TestOptimizeIntersect(t *testing.T) {
 	sdf := Union{
 		Sphere{
-			center: vec3.New(0, 0, 0),
-			radius: 1.0,
+			Center: vec3.New(0, 0, 0),
+			Radius: 1.0,
 		}, Sphere{
-			center: vec3.New(1, 0, 0),
-			radius: 1.0,
+			Center: vec3.New(1, 0, 0),
+			Radius: 1.0,
 		}, Cube{
 			center:   vec3.New(0.5, 0.5, 0.5),
 			halfSize: vec3.New(0.1, 0.2, 0.3),
@@ -93,18 +93,18 @@ func TestOptimizeIntersect(t *testing.T) {
 		expectedResult Sdf
 	}{
 		{
-			intersect:      Sphere{center: vec3.New(-5, 0, 0), radius: 1},
+			intersect:      Sphere{Center: vec3.New(-5, 0, 0), Radius: 1},
 			expectedResult: Infinity{},
 		},
 		{
-			intersect: Sphere{center: vec3.New(-1.8, 0, 0), radius: 1},
+			intersect: Sphere{Center: vec3.New(-1.8, 0, 0), Radius: 1},
 			expectedResult: Sphere{
-				center: vec3.New(0, 0, 0),
-				radius: 1.0,
+				Center: vec3.New(0, 0, 0),
+				Radius: 1.0,
 			},
 		},
 		{
-			intersect:      Sphere{center: vec3.New(0.0, 0, 0), radius: 1},
+			intersect:      Sphere{Center: vec3.New(0.0, 0, 0), Radius: 1},
 			expectedResult: sdf,
 		},
 	}

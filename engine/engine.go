@@ -262,7 +262,7 @@ var (
 				frag_color = colorsdf(loc);
 				
 			}else{
-				frag_color = vec4(0.1,0.1,0.1,1);
+				discard;//frag_color = vec4(0.1,0.1,0.1,1);
 			}
 		}
 	` + "\x00"
