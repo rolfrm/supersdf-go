@@ -102,8 +102,8 @@ func (g *Game) Update() {
 
 		p1.Load3D(outPoints)
 
-		e1 := Node{polygon: &p1, transform: Mat4Scale(1, 1, 1)}
-		e2 := Node{polygon: &p1, transform: Mat4Translation(3, -1, 0)}
+		e1 := Node{polygon: &p1, transform: Mat4Scale(3, 3, 3)}
+		//e2 := Node{polygon: &p1, transform: Mat4Translation(3, -1, 0)}
 
 		/*p2 := Polygon{Color: vec4.New(1.0, 0.0, 0.0, 1.0)}
 		p2.Load3D([]vec3.Vec3{
@@ -113,7 +113,7 @@ func (g *Game) Update() {
 		})
 		e2 := Node{polygon: &p2, transform: Mat4Scale(0.9, 0.9, 0.9)}
 		*/
-		g.Entities = []*Node{&e1, &e2}
+		g.Entities = []*Node{&e1}
 		fb, e := NewFramebuffer(64, 64)
 		if e != nil {
 			panic(e)

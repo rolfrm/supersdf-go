@@ -3,10 +3,12 @@ package engine
 import (
 	"fmt"
 	"runtime"
+	"time"
 	"unsafe"
 
 	"github.com/go-gl/gl/v4.1-core/gl"
 	"github.com/go-gl/glfw/v3.3/glfw"
+	sdf "github.com/supersdf-go/engine/sdf"
 	"github.com/supersdf-go/engine/vec2"
 	"github.com/supersdf-go/engine/vec3"
 	. "github.com/supersdf-go/engine/vec3"
@@ -42,6 +44,37 @@ func NewShaderProgram(program uint32) ShaderProgram {
 	}
 }
 
+func genGlslFragment() string {
+	s := sdf.Union{sdf.Color{
+		Color: vec3.New(1, 0, 0),
+		Sub:   sdf.Sphere{Center: vec3.New(0, 0, 0), Radius: 1.0},
+	}, sdf.Color{
+		Color: vec3.New(0, 0, 1),
+		Sub:   sdf.Sphere{Center: vec3.New(2, 0, 0), Radius: 1.0},
+	}, sdf.Color{
+		Color: vec3.New(0, 1, 0),
+		Sub:   sdf.Sphere{Center: vec3.New(1, 1.5, 0), Radius: 1.0},
+	}, sdf.Color{
+		Color: vec3.New(1, 1, 1),
+		Sub:   sdf.Sphere{Center: vec3.New(1, 0, 1), Radius: 1.0},
+	},
+	}
+	//s := sdf.Sphere{Center: vec3.New(0, 0, 0), Radius: 1}
+	return SDF2GLSL(s)
+
+}
+func measureTime(fn func()) time.Duration {
+	startTime := time.Now()
+
+	// Call the provided function
+	fn()
+
+	endTime := time.Now()
+	elapsedTime := endTime.Sub(startTime)
+
+	return elapsedTime
+}
+
 func RunApp(ctx MainContext) error {
 	runtime.LockOSThread()
 	err := glfw.Init()
@@ -63,10 +96,21 @@ func RunApp(ctx MainContext) error {
 
 	window.MakeContextCurrent()
 	gl.Enable(gl.CULL_FACE)
-	shaderProgram, e := compileShaders(vertexShaderSource, fragmentShaderSource)
+	fmt.Printf("Shader code: %v\n", genGlslFragment())
+	shaderProgram, e := compileShaders(vertexShaderSource, genGlslFragment())
 	if e != nil {
 		panic(e)
 	}
+	time := measureTime(func() {
+		for i := 0; i < 1000; i++ {
+			sp, e := compileShaders(vertexShaderSource, genGlslFragment())
+			if e != nil {
+				panic(e)
+			}
+			gl.DeleteProgram(sp)
+		}
+	})
+	fmt.Printf("Compiled shader: %v", time.String())
 
 	shaderProgram2, e := compileShaders(vertexShader2Source, fragmentShader2Source)
 	if e != nil {
@@ -169,14 +213,14 @@ func (s *Screen) UseProgram(newShader ShaderProgram) {
 	if s.s.program != newShader.program {
 		s.s = newShader
 		gl.UseProgram(newShader.program)
-		fmt.Printf("use program %v\n", newShader.program)
+		//fmt.Printf("use program %v\n", newShader.program)
 	}
 }
 
 func (s *Screen) Draw(polygon Polygon, modelTransform Mat4, color vec4.Vec4) {
 	s.UseProgram(s.s1)
 	modelView := s.cameraTransform.Multiply(modelTransform)
-	fmt.Printf("s: %v %v\n", modelView, polygon.buffer2)
+	//fmt.Printf("s: %v %v\n", modelView, polygon.buffer2)
 	gl.UniformMatrix4fv(s.s.modelView, 1, false, &modelView[0])
 	gl.UniformMatrix4fv(s.s.model, 1, false, &modelTransform[0])
 	gl.Uniform3f(s.s.cameraPosition, s.cameraPosition.X, s.cameraPosition.Y, s.cameraPosition.Z)
@@ -218,52 +262,6 @@ var (
 		void main() {
 			gl_Position = modelView * vec4(vp, 1.0);
 			wp = (model * vec4(vp, 1.0)).xyz;
-		}
-	` + "\x00"
-
-	fragmentShaderSource = `
-		#version 410
-
-		uniform vec4 color;
-		out vec4 frag_color;
-
-		uniform vec3 cameraPosition;
-		in vec3 wp;
-		in vec3 eye_dir;
-
-		float sph(vec3 p, vec3 c, float r){
-			return length(p - c) -r;
-		}
-
-		float sdf(vec3 p){
-			return min(sph(p, vec3(0,-11,0),10),min(sph(p, vec3(-0.4, 0, -3), 0.5), min(sph(p, vec3(0.4, 0, -1), 0.5), sph(p, vec3(0.5, 0, -7), 0.5))));
-		}
-		vec4 colorsdf(vec3 p){
-			float sph1 = sph(p, vec3(-0.4, 0, -3), 0.5);
-			float sph2 =  sph(p, vec3(0.4, 0, -1), 0.5); 
-			float sph3 = sph(p, vec3(0.5, 0, -7), 0.5);
-			float sph4 = sph(p, vec3(0,-11,0),10);
-			if(sph4 < 0.2) return vec4(1,1,1,1);
-			if(sph1 <= sph2 && sph1 <= sph3) return vec4(1,0,0,1);
-			if(sph2 <= sph1 && sph2 <= sph3) return vec4(0,1,0,1);
-			return vec4(0,0,1,1);
-		}
-
-
-		void main() {
-			vec3 loc = wp;
-			vec3 dir = normalize(wp - cameraPosition);
-			for(int i =0; i <20	 ;i++){
-				float d = sdf(loc);
-				loc = loc + d * 1.2 * dir;
-			}
-
-			if (sdf(loc) < 0.1) {
-				frag_color = colorsdf(loc);
-				
-			}else{
-				discard;//frag_color = vec4(0.1,0.1,0.1,1);
-			}
 		}
 	` + "\x00"
 

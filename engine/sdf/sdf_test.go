@@ -83,8 +83,8 @@ func TestOptimizeIntersect(t *testing.T) {
 			Center: vec3.New(1, 0, 0),
 			Radius: 1.0,
 		}, Cube{
-			center:   vec3.New(0.5, 0.5, 0.5),
-			halfSize: vec3.New(0.1, 0.2, 0.3),
+			Center:   vec3.New(0.5, 0.5, 0.5),
+			HalfSize: vec3.New(0.1, 0.2, 0.3),
 		},
 	}
 

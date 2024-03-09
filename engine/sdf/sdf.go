@@ -134,25 +134,25 @@ func (s Sphere) Hash(hasher hash.Hash) {
 }
 
 type Cube struct {
-	center   vec3.Vec3
-	halfSize vec3.Vec3
+	Center   vec3.Vec3
+	HalfSize vec3.Vec3
 }
 
 func (c Cube) Distance(p vec3.Vec3) float32 {
-	d := p.Subtract(c.center).Abs().Subtract(c.halfSize)
+	d := p.Subtract(c.Center).Abs().Subtract(c.HalfSize)
 
 	// Calculate the distance to the surface of the cube
 	return float32(math.Sqrt(math.Max(0.0, float64(d.DotProduct(d)))))
 }
 
 func (c Cube) Hash(h hash.Hash) {
-	HashVec3(c.center, h)
-	HashVec3(c.halfSize, h)
+	HashVec3(c.Center, h)
+	HashVec3(c.HalfSize, h)
 	h.Write(sphereSalt)
 }
 
 func (c *Cube) SphereBounds() Sphere {
-	return Sphere{Center: c.center, Radius: max(c.halfSize.X, c.halfSize.Y, c.halfSize.Z)}
+	return Sphere{Center: c.Center, Radius: max(c.HalfSize.X, c.HalfSize.Y, c.HalfSize.Z)}
 }
 
 type Union []Sdf
