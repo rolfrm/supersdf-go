@@ -43,7 +43,7 @@ func Mat4Scale(x, y, z float32) Mat4 {
 	return v
 }
 
-func (a *Mat4) Multiply(b Mat4) Mat4 {
+func (a Mat4) Multiply(b Mat4) Mat4 {
 	result := Mat4{}
 
 	for i := 0; i < 4; i++ {

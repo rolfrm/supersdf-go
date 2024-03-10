@@ -96,6 +96,7 @@ func RunApp(ctx MainContext) error {
 
 	window.MakeContextCurrent()
 	gl.Enable(gl.CULL_FACE)
+	gl.Enable(gl.DEPTH_TEST)
 	fmt.Printf("Shader code: %v\n", genGlslFragment())
 	shaderProgram, e := compileShaders(vertexShaderSource, genGlslFragment())
 	if e != nil {
@@ -120,6 +121,9 @@ func RunApp(ctx MainContext) error {
 	s1 := NewShaderProgram(shaderProgram)
 
 	screen := Screen{cameraTransform: Mat4Identity()}
+
+	screen.ScreenWidth, screen.ScreenHeight = window.GetSize()
+
 	screen.s.program = 100000
 	screen.s1 = s1
 	screen.s2 = NewShaderProgram(shaderProgram2)
@@ -195,11 +199,12 @@ func compileShader(source string, shaderType uint32) (uint32, error) {
 }
 
 type Screen struct {
-	cameraPosition  vec3.Vec3
-	cameraTransform Mat4
-	s               ShaderProgram
-	s1              ShaderProgram
-	s2              ShaderProgram
+	cameraPosition            vec3.Vec3
+	cameraTransform           Mat4
+	s                         ShaderProgram
+	s1                        ShaderProgram
+	s2                        ShaderProgram
+	ScreenWidth, ScreenHeight int
 }
 
 func (s *Screen) SetCamera(viewTransform Mat4, cameraPosition Vec3, cameraUp Vec3, cameraRight Vec3) {

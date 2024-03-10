@@ -59,8 +59,8 @@ var (
 				frag_color = acolor;
 				
 			}else{
-				frag_color = vec4(0.1,0.1,0.1,1);
-				//discard;
+				//frag_color = vec4(0.1,0.1,0.1,1);
+				discard;
 			}
 		}
 	` + "\x00"
