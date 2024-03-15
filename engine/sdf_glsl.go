@@ -8,20 +8,6 @@ import (
 )
 
 var (
-	sdfvertexShaderSource = `
-		#version 410
-		uniform mat4 modelView;
-		uniform mat4 model;
-		
-		in vec3 vp;
-		out vec3 wp;
-		out vec3 eye_dir;
-		void main() {
-			gl_Position = modelView * vec4(vp, 1.0);
-			wp = (model * vec4(vp, 1.0)).xyz;
-		}
-	` + "\x00"
-
 	sdffragmentShaderSource = `
 		#version 410
 
@@ -56,11 +42,12 @@ var (
 			}
 
 			if (adist < 0.1) {
-				frag_color = acolor;
+				frag_color = vec4(1.0,0.1,0.1,1);
+				//frag_color = acolor;
 				
 			}else{
-				//frag_color = vec4(0.1,0.1,0.1,1);
-				discard;
+				frag_color = vec4(0.1,0.1,0.1,1);
+				//discard;
 			}
 		}
 	` + "\x00"

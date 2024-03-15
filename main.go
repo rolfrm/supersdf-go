@@ -64,8 +64,8 @@ func (g *Game) Layout(width int, height int) (int, int) {
 	return width, height
 }
 
-func (g *Game) Update() {
-
+func (g *Game) Update(eventManager *EventManager) {
+	//eventManager.ReadKeyEvents()
 	g.time += 0.016
 	if len(g.Entities) == 0 {
 
@@ -131,7 +131,7 @@ func main() {
 	game := Game{}
 
 	commands := []remotevm.Command{
-		remotevm.Command{
+		{
 			Name:      "load-location",
 			Arguments: []remotevm.Type{remotevm.Type_F64, remotevm.Type_F64, remotevm.Type_F64},
 			Func: func(x, y, z float64) {

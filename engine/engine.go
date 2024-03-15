@@ -15,8 +15,18 @@ import (
 	"github.com/supersdf-go/engine/vec4"
 )
 
+type EventManager struct {
+}
+type KeyEvent struct {
+	KeyCode int
+}
+
+func (evtMgt *EventManager) ReadKeyEvents(output *[]KeyEvent) {
+
+}
+
 type MainContext interface {
-	Update()
+	Update(eventManager *EventManager)
 	Draw(screen *Screen)
 	Layout(width, height int) (int, int)
 }
@@ -103,7 +113,7 @@ func RunApp(ctx MainContext) error {
 		panic(e)
 	}
 	time := measureTime(func() {
-		for i := 0; i < 1000; i++ {
+		for i := 0; i < 0; i++ {
 			sp, e := compileShaders(vertexShaderSource, genGlslFragment())
 			if e != nil {
 				panic(e)
@@ -121,7 +131,7 @@ func RunApp(ctx MainContext) error {
 	s1 := NewShaderProgram(shaderProgram)
 
 	screen := Screen{cameraTransform: Mat4Identity()}
-
+	eventMgr := EventManager{}
 	screen.ScreenWidth, screen.ScreenHeight = window.GetSize()
 
 	screen.s.program = 100000
@@ -129,7 +139,7 @@ func RunApp(ctx MainContext) error {
 	screen.s2 = NewShaderProgram(shaderProgram2)
 	screen.UseProgram(s1)
 	for !window.ShouldClose() {
-		ctx.Update()
+		ctx.Update(&eventMgr)
 		w, h := window.GetSize()
 		ctx.Layout(w, h)
 		gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
